@@ -122,8 +122,11 @@ class RepositoriesController < ApplicationController
     @content = @repository.cat(@path, @rev)
     (show_error_not_found; return) unless @content
     if 'raw' == params[:format] || @content.is_binary_data? || (@entry.size && @entry.size > Setting.file_max_size_displayed.to_i.kilobyte)
-      # Force the download
-      send_data @content, :filename => @path.split('/').last
+      # Do not force the download, prefer browser view
+      send_data @content,
+        :disposition => 'inline',
+        :filename => @path.split('/').last,
+        :type => Mime::Type.lookup_by_extension(@path.split('.').last) 
     else
       # Prevent empty lines when displaying a file with Windows style eol
       @content.gsub!("\r\n", "\n")
